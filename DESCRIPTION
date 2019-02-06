@@ -1,4 +1,4 @@
-Package: shiny
+Package: shinykristen
 Type: Package
 Title: Web Application Framework for R
 Version: 1.2.0.9001
@@ -88,8 +88,6 @@ Suggests:
     ggplot2,
     reactlog (>= 0.0.0.9001),
     magrittr
-URL: http://shiny.rstudio.com
-BugReports: https://github.com/rstudio/shiny/issues
 Remotes:
     rstudio/httpuv,
     rstudio/reactlog

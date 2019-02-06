@@ -1563,3 +1563,174 @@ icon <- function(name, class = NULL, lib = "font-awesome") {
 iconClass <- function(icon) {
   if (!is.null(icon)) icon$attribs$class
 }
+
+
+
+
+#' Create a page with a top level navigation bar - with Kristens customization
+#'
+#' Create a page that contains a top level navigation bar that can be used to
+#' toggle a set of \code{\link{tabPanel}} elements.
+#'
+#' @param title The title to display in the navbar
+#' @param author The author to display in the navbar
+#' @param ... \code{\link{tabPanel}} elements to include in the page. The
+#'   \code{navbarMenu} function also accepts strings, which will be used as menu
+#'   section headers. If the string is a set of dashes like \code{"----"} a
+#'   horizontal separator will be displayed in the menu.
+#' @param id If provided, you can use \code{input$}\emph{\code{id}} in your
+#'   server logic to determine which of the current tabs is active. The value
+#'   will correspond to the \code{value} argument that is passed to
+#'   \code{\link{tabPanel}}.
+#' @param selected The \code{value} (or, if none was supplied, the \code{title})
+#'   of the tab that should be selected by default. If \code{NULL}, the first
+#'   tab will be selected.
+#' @param position Determines whether the navbar should be displayed at the top
+#'   of the page with normal scrolling behavior (\code{"static-top"}), pinned at
+#'   the top (\code{"fixed-top"}), or pinned at the bottom
+#'   (\code{"fixed-bottom"}). Note that using \code{"fixed-top"} or
+#'   \code{"fixed-bottom"} will cause the navbar to overlay your body content,
+#'   unless you add padding, e.g.: \code{tags$style(type="text/css", "body
+#'   {padding-top: 70px;}")}
+#' @param header Tag or list of tags to display as a common header above all
+#'   tabPanels.
+#' @param footer Tag or list of tags to display as a common footer below all
+#'   tabPanels
+#' @param inverse \code{TRUE} to use a dark background and light text for the
+#'   navigation bar
+#' @param collapsible \code{TRUE} to automatically collapse the navigation
+#'   elements into a menu when the width of the browser is less than 940 pixels
+#'   (useful for viewing on smaller touchscreen device)
+#' @param collapsable Deprecated; use \code{collapsible} instead.
+#' @param fluid \code{TRUE} to use a fluid layout. \code{FALSE} to use a fixed
+#'   layout.
+#' @param responsive This option is deprecated; it is no longer optional with
+#'   Bootstrap 3.
+#' @param theme Alternative Bootstrap stylesheet (normally a css file within the
+#'   www directory). For example, to use the theme located at
+#'   \code{www/bootstrap.css} you would use \code{theme = "bootstrap.css"}.
+#' @param windowTitle The title that should be displayed by the browser window.
+#'   Useful if \code{title} is not a string.
+#' @param icon Optional icon to appear on a \code{navbarMenu} tab.
+#'
+#' @return A UI defintion that can be passed to the \link{shinyUI} function.
+#'
+#' @details The \code{navbarMenu} function can be used to create an embedded
+#'   menu within the navbar that in turns includes additional tabPanels (see
+#'   example below).
+#'
+#' @seealso \code{\link{tabPanel}}, \code{\link{tabsetPanel}},
+#'   \code{\link{updateNavbarPage}}, \code{\link{insertTab}},
+#'   \code{\link{showTab}}
+#'
+#' @examples
+#' navbarPage("App Title",
+#'   tabPanel("Plot"),
+#'   tabPanel("Summary"),
+#'   tabPanel("Table")
+#' )
+#'
+#' navbarPage("App Title",
+#'   tabPanel("Plot"),
+#'   navbarMenu("More",
+#'     tabPanel("Summary"),
+#'     "----",
+#'     "Section header",
+#'     tabPanel("Table")
+#'   )
+#' )
+#' @export
+
+
+
+
+navbarPageKristen <- function (title, author, ..., id = NULL, selected = NULL, position = c("static-top", 
+    "fixed-top", "fixed-bottom"), header = NULL, footer = NULL, 
+    inverse = FALSE, collapsible = FALSE, collapsable, fluid = TRUE, 
+    responsive = NULL, theme = NULL, windowTitle = title) 
+{
+    if (!missing(collapsable)) {
+        shinyDeprecated("`collapsable` is deprecated; use `collapsible` instead.")
+        collapsible <- collapsable
+    }
+    pageTitle <- title
+	pageAuthor <- author
+    navbarClass <- "navbar navbar-default"
+    position <- match.arg(position)
+    if (!is.null(position)) 
+        navbarClass <- paste(
+			navbarClass, 
+			" navbar-", 
+			position, 
+            sep = ""
+		)
+    if (inverse) 
+        navbarClass <- paste(navbarClass, "navbar-inverse")
+    if (!is.null(id)) 
+        selected <- restoreInput(id = id, default = selected)
+    tabs <- list(...)
+    tabset <- buildTabset(tabs, "nav navbar-nav", NULL, id, selected)
+    className <- function(name) {
+        if (fluid) 
+            paste(name, "-fluid", sep = "")
+        else name
+    }
+    if (collapsible) {
+        navId <- paste("navbar-collapse-", p_randomInt(1000, 
+            10000), sep = "")
+        containerDiv <- div(
+			class = className("container"), 
+			div(
+				class = "navbar-header", 
+				tags$button(
+					type = "button", 
+					class = "navbar-toggle collapsed", 
+					`data-toggle` = "collapse", 
+					`data-target` = paste0("#", navId), 
+					span(class = "sr-only", "Toggle navigation"), 
+					span(class = "icon-bar"), 
+					span(class = "icon-bar"), 
+					span(class = "icon-bar")), 
+					span(class = "navbar-brand", pageTitle)
+			), 
+			div(
+				class = "navbar-collapse collapse", 
+				id = navId, tabset$navList
+			)
+		)
+    }
+    else {
+        containerDiv <- div(
+			class = className("container"), 
+			div(
+				class = "navbar-header", 
+				span(class = "navbar-brand", pageTitle),
+				span(class = "navbar-brand", pageAuthor)				
+			), 
+			tabset$navList
+		)
+    }
+    contentDiv <- div(class = className("container"))
+    if (!is.null(header)) 
+        contentDiv <- tagAppendChild(
+			contentDiv, 
+			div(class = "row", header)
+		)
+    contentDiv <- tagAppendChild(contentDiv, tabset$content)
+    if (!is.null(footer)) 
+        contentDiv <- tagAppendChild(
+			contentDiv, 
+			div(class = "row", footer)
+		)
+    bootstrapPage(
+		title = windowTitle, 
+		responsive = responsive, 
+        theme = theme, 
+		tags$nav(
+			class = navbarClass, 
+			role = "navigation", 
+            containerDiv
+		), 
+		contentDiv
+	)
+}

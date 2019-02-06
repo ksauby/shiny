@@ -7,11 +7,11 @@
 \alias{knit_print.reactive}
 \title{Knitr S3 methods}
 \usage{
-knit_print.shiny.appobj(x, ...)
+\method{knit_print}{shiny.appobj}(x, ...)
 
-knit_print.shiny.render.function(x, ..., inline = FALSE)
+\method{knit_print}{shiny.render.function}(x, ..., inline = FALSE)
 
-knit_print.reactive(x, ..., inline = FALSE)
+\method{knit_print}{reactive}(x, ..., inline = FALSE)
 }
 \arguments{
 \item{x}{Object to knit_print}
